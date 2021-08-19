@@ -881,7 +881,16 @@ func CopyFileOrSymlink(src string, destDir string, root string) error {
 		}
 		return os.Symlink(link, destFile)
 	}
-	return otiai10Cpy.Copy(src, destFile)
+	opt := otiai10Cpy.Options{
+		Skip: func(path string) (bool, error) {
+			if CheckIgnoreList(path) {
+				logrus.Debugf("Not copying %s, as it's ignored", path)
+				return true, nil
+			}
+			return false, nil
+		},
+	}
+	return otiai10Cpy.Copy(src, destFile, opt)
 }
 
 func createParentDirectory(path string) error {
