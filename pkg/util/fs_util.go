@@ -77,6 +77,10 @@ var defaultIgnoreList = []IgnoreListEntry{
 var baseIgnoreList = defaultIgnoreList
 var ignorelist = baseIgnoreList
 
+// these paths should be always preserved in the image
+// adding them to ignore list will remove just nested paths
+var preservelist = []string{"/dev", "/proc", "/run", "/sys", "/var/run"}
+
 var volumes = []string{}
 
 type FileContext struct {
@@ -285,7 +289,7 @@ func ExtractFile(dest string, hdr *tar.Header, tr io.Reader) error {
 		return err
 	}
 
-	if CheckIgnoreList(abs) && !checkIgnoreListRoot(dest) {
+	if CheckIgnoreList(abs) && !checkIgnoreListRoot(dest) && !CheckPreserveList(dest) {
 		logrus.Debugf("Not adding %s because it is ignored", path)
 		return nil
 	}
@@ -410,6 +414,16 @@ func checkIgnoreListRoot(root string) bool {
 		return false
 	}
 	return CheckIgnoreList(root)
+}
+
+// Check if path should be always preserved
+func CheckPreserveList(path string) bool {
+	for _, p := range preservelist {
+		if path == p {
+			return true
+		}
+	}
+	return false
 }
 
 // Get ignorelist from roots of mounted files
@@ -883,7 +897,7 @@ func CopyFileOrSymlink(src string, destDir string, root string) error {
 	}
 	opt := otiai10Cpy.Options{
 		Skip: func(path string) (bool, error) {
-			if CheckIgnoreList(path) {
+			if CheckIgnoreList(path) && !CheckPreserveList(path) {
 				logrus.Debugf("Not copying %s, as it's ignored", path)
 				return true, nil
 			}
