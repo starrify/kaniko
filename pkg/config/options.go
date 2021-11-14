@@ -63,6 +63,7 @@ type KanikoOptions struct {
 	BuildArgs              multiArg
 	Labels                 multiArg
 	SingleSnapshot         bool
+	SingleSnapshotMode     string
 	Reproducible           bool
 	NoPush                 bool
 	Cache                  bool

@@ -86,6 +86,9 @@ var RootCmd = &cobra.Command{
 			if len(opts.Destinations) == 0 && opts.ImageNameTagDigestFile != "" {
 				return errors.New("You must provide --destination if setting ImageNameTagDigestFile")
 			}
+			if opts.SingleSnapshot && (opts.SingleSnapshotMode != constants.SingleSnapshotModePerStage && opts.SingleSnapshotMode != constants.SingleSnapshotModeAllStages) {
+				return errors.New("Value for --single-snapshot-mode must be per-stage or all-stages")
+			}
 			// Update ignored paths
 			util.UpdateInitialIgnoreList(opts.IgnoreVarRun)
 			for _, p := range opts.IgnorePaths {
@@ -168,6 +171,7 @@ func addKanikoOptionsFlags() {
 	RootCmd.PersistentFlags().IntVar(&opts.PushRetry, "push-retry", 0, "Number of retries for the push operation")
 	RootCmd.PersistentFlags().StringVarP(&opts.TarPath, "tarPath", "", "", "Path to save the image in as a tarball instead of pushing")
 	RootCmd.PersistentFlags().BoolVarP(&opts.SingleSnapshot, "single-snapshot", "", false, "Take a single snapshot at the end of the build.")
+	RootCmd.PersistentFlags().StringVarP(&opts.SingleSnapshotMode, "single-snapshot-mode", "", constants.SingleSnapshotModePerStage, "When to take the single snapshot. Shall be per-stage (default) or all-stages.")
 	RootCmd.PersistentFlags().BoolVarP(&opts.Reproducible, "reproducible", "", false, "Strip timestamps out of the image to make it reproducible")
 	RootCmd.PersistentFlags().StringVarP(&opts.Target, "target", "", "", "Set the target build stage to build")
 	RootCmd.PersistentFlags().BoolVarP(&opts.NoPush, "no-push", "", false, "Do not push the image to the registry")
